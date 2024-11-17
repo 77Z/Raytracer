@@ -3,13 +3,18 @@
 
 #include "Hittable.hpp"
 #include "Interval.hpp"
+#include "Material.hpp"
 #include "ray.hpp"
 #include "vec3.hpp"
 #include <cmath>
+#include <memory>
 
 class Sphere : public Hittable {
 public:
-	Sphere(const point3& center, double radius) : center(center), radius(radius) {}
+	Sphere(const point3& center, double radius, std::shared_ptr<Material> mat)
+		: center(center)
+		, radius(fmax(0, radius))
+		, mat(mat) { }
 
 	bool hit(const Ray& r, Interval ray_t, hitRecord& rec) const override {
 		vec3 oc = center - r.origin();
@@ -35,6 +40,7 @@ public:
 		rec.p = r.at(rec.t);
 		vec3 outwardNormal = (rec.p - center) / radius;
 		rec.setFaceNormal(r, outwardNormal);
+		rec.mat = mat;
 
 		return true;
 	}
@@ -42,6 +48,7 @@ public:
 private:
 	point3 center;
 	double radius;
+	std::shared_ptr<Material> mat;
 };
 
 #endif /* RAYTRACER_SPHERE_HPP */

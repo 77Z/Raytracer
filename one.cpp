@@ -1,75 +1,39 @@
-#include "Hittable.hpp"
+#include "Camera.hpp"
 #include "HittableList.hpp"
-#include "Interval.hpp"
+#include "Material.hpp"
 #include "Sphere.hpp"
-#include "Util.hpp"
 #include "color.hpp"
-#include "ray.hpp"
 #include "vec3.hpp"
-#include <cmath>
 #include <fstream>
-#include <iostream>
 #include <memory>
-
-color rayColor(const Ray& r, const Hittable& world) {
-	
-}
 
 int main() {
 	std::ofstream outImage("image.ppm");
 
-	auto aspectRatio = 16.0 / 9.0;
-	int imageWidth = 1920;
-
-	// Calc image height
-	int imageHeight = int(imageWidth / aspectRatio);
-	imageHeight = (imageHeight < 1) ? 1 : imageHeight;
-
-	// World
 	HittableList world;
 
-	world.add(make_shared<Sphere>(point3(0, 0, -1), 0.5));
-	world.add(make_shared<Sphere>(point3(0.4, 0, -1), 0.5));
-	world.add(make_shared<Sphere>(point3(0, -100.5, -1), 100));
+	// world.add(make_shared<Sphere>(point3(0, 0, -1), 0.5));
+	// world.add(make_shared<Sphere>(point3(0.4, 0, -1), 0.5));
+	// world.add(make_shared<Sphere>(point3(0, -100.5, -1), 100));
 
-	// Camera
-	auto focalLength = 1.0;
-	auto viewportHeight = 2.0;
-	auto viewportWidth = viewportHeight * (double(imageWidth) / imageHeight);
-	auto cameraCenter = point3(0, 0, 0);
+	auto materialGround = make_shared<Lambertian>(color(0.8, 0.8, 0.0));
+	auto materialCenter = make_shared<Lambertian>(color(0.1, 0.2, 0.5));
+	auto materialLeft = make_shared<Metal>(color(0.8, 0.8, 0.8), 0.3);
+	auto materialRight = make_shared<Metal>(color(0.8, 0.6, 0.2), 1.0);
 
-	// Calc vectors across the horizontal and down the vertical viewport edges
-	auto viewport_u = vec3(viewportWidth, 0, 0);
-	auto viewport_v = vec3(0, -viewportHeight, 0);
+	world.add(make_shared<Sphere>(point3( 0.0, -100.5, -1.0), 100.0, materialGround));
+	world.add(make_shared<Sphere>(point3( 0.0,    0.0, -1.2),   0.5, materialCenter));
+	world.add(make_shared<Sphere>(point3(-1.0,    0.0, -1.0),   0.5, materialLeft));
+	world.add(make_shared<Sphere>(point3( 1.0,    0.0, -1.0),   0.5, materialRight));
 
-	// Calc the horizontal and vertical delta vectors from pixel to pixel
-	auto pixelDelta_u = viewport_u / imageWidth;
-	auto pixelDelta_v = viewport_v / imageHeight;
+	Camera cam;
 
-	// Calc the location of the upper left pixel
-	auto viewportUpperLeft = cameraCenter - vec3(0, 0, focalLength) - viewport_u / 2 - viewport_v / 2;
-	auto pixel00_loc = viewportUpperLeft + 0.5 * (pixelDelta_u + pixelDelta_v);
+	cam.aspectRatio = 16.0 / 9.0;
+	cam.imageWidth = 1920;
+	cam.samplesPerPixel = 100;
+	cam.maxDepth = 50;
 
-
-
-	// Render
-
-	outImage << "P3\n" << imageWidth << ' ' << imageHeight << "\n255\n";
-
-	for (int j = 0; j < imageHeight; j++) {
-		std::clog << "\rScanlines remaining: " << (imageHeight - j) << ' ' << std::flush;
-		for (int i = 0; i < imageWidth; i++) {
-			auto pixelCenter = pixel00_loc + (i * pixelDelta_u) + (j * pixelDelta_v);
-			auto rayDirection = pixelCenter - cameraCenter;
-			Ray r(cameraCenter, rayDirection);
-
-			color pixelColor = rayColor(r, world);
-
-			writeColor(outImage, pixelColor);
-		}
-	}
-
-	std::clog << "\rDone.                     \n";
+	cam.render(world, outImage);
 
 	outImage.close();
 

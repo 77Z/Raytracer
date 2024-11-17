@@ -2,6 +2,7 @@
 #define RAYTRACER_UTIL_HPP
 
 #include <limits>
+#include <random>
 
 // Constants
 
@@ -14,5 +15,14 @@ inline double degToRad(double deg) {
 	return deg * pi / 180.0;
 }
 
+inline double randomDouble() {
+	static std::uniform_real_distribution<double> distribution(0.0, 1.0);
+	static std::mt19937 generator;
+	return distribution(generator);
+}
+
+inline double randomDouble(double min, double max) {
+	return min + (max-min)*randomDouble();
+}
 
 #endif /* RAYTRACER_UTIL_HPP */

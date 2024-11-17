@@ -1,6 +1,7 @@
 #ifndef RAYTRACER_VEC3_HPP
 #define RAYTRACER_VEC3_HPP
 
+#include "Util.hpp"
 #include <cmath>
 #include <iostream>
 #include <ostream>
@@ -47,6 +48,20 @@ public:
 
 	double length_squared() const {
 		return e[0]*e[0] + e[1]*e[1] + e[2]*e[2];
+	}
+
+	bool nearZero() const {
+		// Returns true if the vector is close to zero in all directions
+		auto s = 1e-8;
+		return (fabs(e[0]) < s) && (fabs(e[1]) < s) && (fabs(e[2]) < s);
+	}
+
+	static vec3 random() {
+		return vec3(randomDouble(), randomDouble(), randomDouble());
+	}
+
+	static vec3 random(double min, double max) {
+		return vec3(randomDouble(min, max), randomDouble(min, max), randomDouble(min, max));
 	}
 };
 
@@ -97,6 +112,30 @@ inline vec3 cross(const vec3& u, const vec3& v) {
 
 inline vec3 unitVector(const vec3& v) {
 	return v / v.length();
+}
+
+inline vec3 randomInUnitSphere() {
+	while (true) {
+		auto p = vec3::random(-1, 1);
+		if (p.length_squared() < 1)
+			return p;
+	}
+}
+
+inline vec3 randomUnitVector() {
+	return unitVector(randomInUnitSphere());
+}
+
+inline vec3 randomOnHemisphere(const vec3& normal) {
+	vec3 onUnitSphere = randomUnitVector();
+	if (dot(onUnitSphere, normal) > 0.0) // In the same hemisphere as the normal
+		return onUnitSphere;
+
+	return -onUnitSphere;
+}
+
+inline vec3 reflect(const vec3& v, const vec3& n) {
+	return v - 2*dot(v, n)*n;
 }
 
 #endif /* RAYTRACER_VEC3_HPP */

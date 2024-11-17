@@ -4,11 +4,15 @@
 #include "Interval.hpp"
 #include "ray.hpp"
 #include "vec3.hpp"
+#include <memory>
+
+class Material;
 
 class hitRecord {
 public:
 	point3 p;
 	vec3 normal;
+	std::shared_ptr<Material> mat;
 	double t;
 	bool frontFace;
 
